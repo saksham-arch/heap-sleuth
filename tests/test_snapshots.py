@@ -1,6 +1,6 @@
 import unittest
 
-from heap_sleuth import Allocation, compare_snapshots
+from heap_sleuth import Allocation, compare_snapshots, group_deltas_by_file
 
 
 class SnapshotTests(unittest.TestCase):
@@ -24,6 +24,15 @@ class SnapshotTests(unittest.TestCase):
     def test_validates_allocations(self) -> None:
         with self.assertRaises(ValueError):
             Allocation("", 1, 0, 0)
+
+    def test_groups_site_deltas_by_file(self) -> None:
+        before = [Allocation("a.py", 1, 10, 1), Allocation("a.py", 2, 30, 3)]
+        after = [Allocation("a.py", 1, 20, 2), Allocation("a.py", 2, 10, 1)]
+        grouped = group_deltas_by_file(compare_snapshots(before, after))
+        self.assertEqual(len(grouped), 1)
+        self.assertEqual(grouped[0].changed_sites, 2)
+        self.assertEqual(grouped[0].size_delta_bytes, -10)
+        self.assertEqual(grouped[0].count_delta, -1)
 
 
 if __name__ == "__main__":

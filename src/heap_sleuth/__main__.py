@@ -3,7 +3,7 @@ from dataclasses import asdict
 import json
 from pathlib import Path
 
-from .snapshots import Allocation, compare_snapshots
+from .snapshots import Allocation, compare_snapshots, group_deltas_by_file
 
 
 def load_snapshot(path: Path) -> list[Allocation]:
@@ -26,13 +26,14 @@ def main() -> None:
     parser.add_argument("before", type=Path)
     parser.add_argument("after", type=Path)
     parser.add_argument("--top", type=int, default=20)
+    parser.add_argument("--group-by", choices=("site", "file"), default="site")
     args = parser.parse_args()
     if args.top < 1:
         parser.error("--top must be positive")
     deltas = compare_snapshots(load_snapshot(args.before), load_snapshot(args.after))
-    print(json.dumps([asdict(item) for item in deltas[: args.top]], indent=2))
+    results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
+    print(json.dumps([asdict(item) for item in results[: args.top]], indent=2))
 
 
 if __name__ == "__main__":
     main()
-

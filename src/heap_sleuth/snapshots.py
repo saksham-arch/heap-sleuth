@@ -24,6 +24,14 @@ class AllocationDelta:
     count_delta: int
 
 
+@dataclass(frozen=True)
+class FileDelta:
+    filename: str
+    changed_sites: int
+    size_delta_bytes: int
+    count_delta: int
+
+
 def _index(snapshot: Iterable[Allocation]) -> dict[tuple[str, int], Allocation]:
     indexed: dict[tuple[str, int], Allocation] = {}
     for allocation in snapshot:
@@ -57,3 +65,18 @@ def compare_snapshots(
             deltas.append(AllocationDelta(filename, lineno, size_delta, count_delta))
     return sorted(deltas, key=lambda item: (-abs(item.size_delta_bytes), item.filename, item.lineno))
 
+
+def group_deltas_by_file(deltas: Iterable[AllocationDelta]) -> list[FileDelta]:
+    grouped: dict[str, tuple[int, int, int]] = {}
+    for delta in deltas:
+        sites, size, count = grouped.get(delta.filename, (0, 0, 0))
+        grouped[delta.filename] = (
+            sites + 1,
+            size + delta.size_delta_bytes,
+            count + delta.count_delta,
+        )
+    results = [
+        FileDelta(filename, sites, size, count)
+        for filename, (sites, size, count) in grouped.items()
+    ]
+    return sorted(results, key=lambda item: (-abs(item.size_delta_bytes), item.filename))

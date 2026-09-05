@@ -12,6 +12,7 @@ Snapshot format:
 
 ```bash
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --top 20
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --group-by file
 python3 -m unittest discover -s tests
 ```
 
@@ -19,3 +20,5 @@ A positive delta is retained growth between two observations, not proof of a
 memory leak. Reproduce growth across controlled workloads before drawing that
 conclusion.
 
+Site-level output can be grouped by filename to reveal modules with distributed
+growth while preserving the number of changed allocation sites.
