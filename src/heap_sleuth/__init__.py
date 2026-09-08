@@ -5,6 +5,7 @@ from .snapshots import (
     AllocationDelta,
     FileDelta,
     compare_snapshots,
+    filter_deltas,
     group_deltas_by_file,
 )
 
@@ -13,5 +14,6 @@ __all__ = [
     "AllocationDelta",
     "FileDelta",
     "compare_snapshots",
+    "filter_deltas",
     "group_deltas_by_file",
 ]

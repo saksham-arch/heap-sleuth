@@ -1,6 +1,11 @@
 import unittest
 
-from heap_sleuth import Allocation, compare_snapshots, group_deltas_by_file
+from heap_sleuth import (
+    Allocation,
+    compare_snapshots,
+    filter_deltas,
+    group_deltas_by_file,
+)
 
 
 class SnapshotTests(unittest.TestCase):
@@ -33,6 +38,24 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(grouped[0].changed_sites, 2)
         self.assertEqual(grouped[0].size_delta_bytes, -10)
         self.assertEqual(grouped[0].count_delta, -1)
+
+    def test_filters_small_allocation_noise(self) -> None:
+        deltas = compare_snapshots(
+            [],
+            [
+                Allocation("large.py", 1, 4096, 2),
+                Allocation("many.py", 2, 128, 20),
+                Allocation("small.py", 3, 64, 1),
+            ],
+        )
+        filtered = filter_deltas(
+            deltas, minimum_size_bytes=1024, minimum_count=10
+        )
+        self.assertEqual({item.filename for item in filtered}, {"large.py", "many.py"})
+
+    def test_validates_delta_thresholds(self) -> None:
+        with self.assertRaises(ValueError):
+            filter_deltas([], minimum_size_bytes=-1)
 
 
 if __name__ == "__main__":

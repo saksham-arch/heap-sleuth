@@ -80,3 +80,26 @@ def group_deltas_by_file(deltas: Iterable[AllocationDelta]) -> list[FileDelta]:
         for filename, (sites, size, count) in grouped.items()
     ]
     return sorted(results, key=lambda item: (-abs(item.size_delta_bytes), item.filename))
+
+
+def filter_deltas(
+    deltas: Iterable[AllocationDelta],
+    *,
+    minimum_size_bytes: int = 0,
+    minimum_count: int = 0,
+) -> list[AllocationDelta]:
+    """Keep changes meeting either caller-selected absolute threshold."""
+    if minimum_size_bytes < 0 or minimum_count < 0:
+        raise ValueError("delta thresholds must be non-negative")
+    items = list(deltas)
+    if minimum_size_bytes == 0 and minimum_count == 0:
+        return items
+    return [
+        item
+        for item in items
+        if (
+            minimum_size_bytes > 0
+            and abs(item.size_delta_bytes) >= minimum_size_bytes
+        )
+        or (minimum_count > 0 and abs(item.count_delta) >= minimum_count)
+    ]
