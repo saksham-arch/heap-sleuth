@@ -5,6 +5,7 @@ from heap_sleuth import (
     compare_snapshots,
     filter_deltas,
     group_deltas_by_file,
+    summarize_deltas,
 )
 
 
@@ -56,6 +57,27 @@ class SnapshotTests(unittest.TestCase):
     def test_validates_delta_thresholds(self) -> None:
         with self.assertRaises(ValueError):
             filter_deltas([], minimum_size_bytes=-1)
+
+    def test_summarizes_growth_release_and_net_change(self) -> None:
+        deltas = compare_snapshots(
+            [Allocation("old.py", 1, 100, 4), Allocation("mixed.py", 2, 50, 2)],
+            [Allocation("new.py", 1, 180, 3), Allocation("mixed.py", 2, 80, 1)],
+        )
+        summary = summarize_deltas(deltas)
+        self.assertEqual(summary.changed_sites, 3)
+        self.assertEqual(summary.size_growth_sites, 2)
+        self.assertEqual(summary.size_release_sites, 1)
+        self.assertEqual(summary.bytes_grown, 210)
+        self.assertEqual(summary.bytes_released, 100)
+        self.assertEqual(summary.net_size_delta_bytes, 110)
+        self.assertEqual(summary.allocations_grown, 3)
+        self.assertEqual(summary.allocations_released, 5)
+        self.assertEqual(summary.net_count_delta, -2)
+
+    def test_empty_delta_summary_reports_zeroes(self) -> None:
+        summary = summarize_deltas([])
+        self.assertEqual(summary.changed_sites, 0)
+        self.assertEqual(summary.net_size_delta_bytes, 0)
 
 
 if __name__ == "__main__":

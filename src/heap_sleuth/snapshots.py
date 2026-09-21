@@ -32,6 +32,19 @@ class FileDelta:
     count_delta: int
 
 
+@dataclass(frozen=True)
+class DeltaSummary:
+    changed_sites: int
+    size_growth_sites: int
+    size_release_sites: int
+    bytes_grown: int
+    bytes_released: int
+    net_size_delta_bytes: int
+    allocations_grown: int
+    allocations_released: int
+    net_count_delta: int
+
+
 def _index(snapshot: Iterable[Allocation]) -> dict[tuple[str, int], Allocation]:
     indexed: dict[tuple[str, int], Allocation] = {}
     for allocation in snapshot:
@@ -103,3 +116,18 @@ def filter_deltas(
         )
         or (minimum_count > 0 and abs(item.count_delta) >= minimum_count)
     ]
+
+
+def summarize_deltas(deltas: Iterable[AllocationDelta]) -> DeltaSummary:
+    items = list(deltas)
+    return DeltaSummary(
+        changed_sites=len(items),
+        size_growth_sites=sum(item.size_delta_bytes > 0 for item in items),
+        size_release_sites=sum(item.size_delta_bytes < 0 for item in items),
+        bytes_grown=sum(max(item.size_delta_bytes, 0) for item in items),
+        bytes_released=sum(max(-item.size_delta_bytes, 0) for item in items),
+        net_size_delta_bytes=sum(item.size_delta_bytes for item in items),
+        allocations_grown=sum(max(item.count_delta, 0) for item in items),
+        allocations_released=sum(max(-item.count_delta, 0) for item in items),
+        net_count_delta=sum(item.count_delta for item in items),
+    )

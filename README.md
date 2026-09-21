@@ -14,6 +14,7 @@ Snapshot format:
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --top 20
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --group-by file
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --summary
 python3 -m unittest discover -s tests
 ```
 
@@ -27,3 +28,8 @@ growth while preserving the number of changed allocation sites.
 Optional absolute byte and allocation-count thresholds suppress small deltas;
 when both are supplied, a site is retained if it meets either threshold. These
 are practical noise filters, not statistical tests or leak classifications.
+
+Summary mode separates bytes and allocation counts that grew from those that
+were released, then reports their net changes. The summary is computed after
+optional thresholds are applied, while `--top` limits only the displayed delta
+rows. Growth remains an observation between snapshots, not proof of a leak.

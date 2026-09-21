@@ -8,6 +8,7 @@ from .snapshots import (
     compare_snapshots,
     filter_deltas,
     group_deltas_by_file,
+    summarize_deltas,
 )
 
 
@@ -34,6 +35,7 @@ def main() -> None:
     parser.add_argument("--group-by", choices=("site", "file"), default="site")
     parser.add_argument("--minimum-size-bytes", type=int, default=0)
     parser.add_argument("--minimum-count", type=int, default=0)
+    parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.top < 1:
         parser.error("--top must be positive")
@@ -43,7 +45,13 @@ def main() -> None:
         minimum_count=args.minimum_count,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
-    print(json.dumps([asdict(item) for item in results[: args.top]], indent=2))
+    visible = [asdict(item) for item in results[: args.top]]
+    payload = (
+        {"summary": asdict(summarize_deltas(deltas)), "deltas": visible}
+        if args.summary
+        else visible
+    )
+    print(json.dumps(payload, indent=2))
 
 
 if __name__ == "__main__":
