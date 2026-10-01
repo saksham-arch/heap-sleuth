@@ -28,6 +28,10 @@ class AllocationDelta:
 class FileDelta:
     filename: str
     changed_sites: int
+    size_growth_sites: int
+    size_release_sites: int
+    bytes_grown: int
+    bytes_released: int
     size_delta_bytes: int
     count_delta: int
 
@@ -80,19 +84,26 @@ def compare_snapshots(
 
 
 def group_deltas_by_file(deltas: Iterable[AllocationDelta]) -> list[FileDelta]:
-    grouped: dict[str, tuple[int, int, int]] = {}
+    grouped: dict[str, list[AllocationDelta]] = {}
     for delta in deltas:
-        sites, size, count = grouped.get(delta.filename, (0, 0, 0))
-        grouped[delta.filename] = (
-            sites + 1,
-            size + delta.size_delta_bytes,
-            count + delta.count_delta,
-        )
+        grouped.setdefault(delta.filename, []).append(delta)
     results = [
-        FileDelta(filename, sites, size, count)
-        for filename, (sites, size, count) in grouped.items()
+        FileDelta(
+            filename=filename,
+            changed_sites=len(items),
+            size_growth_sites=sum(item.size_delta_bytes > 0 for item in items),
+            size_release_sites=sum(item.size_delta_bytes < 0 for item in items),
+            bytes_grown=sum(max(item.size_delta_bytes, 0) for item in items),
+            bytes_released=sum(max(-item.size_delta_bytes, 0) for item in items),
+            size_delta_bytes=sum(item.size_delta_bytes for item in items),
+            count_delta=sum(item.count_delta for item in items),
+        )
+        for filename, items in grouped.items()
     ]
-    return sorted(results, key=lambda item: (-abs(item.size_delta_bytes), item.filename))
+    return sorted(
+        results,
+        key=lambda item: (-(item.bytes_grown + item.bytes_released), item.filename),
+    )
 
 
 def filter_deltas(

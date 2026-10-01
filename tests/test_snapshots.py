@@ -37,8 +37,33 @@ class SnapshotTests(unittest.TestCase):
         grouped = group_deltas_by_file(compare_snapshots(before, after))
         self.assertEqual(len(grouped), 1)
         self.assertEqual(grouped[0].changed_sites, 2)
+        self.assertEqual(grouped[0].size_growth_sites, 1)
+        self.assertEqual(grouped[0].size_release_sites, 1)
+        self.assertEqual(grouped[0].bytes_grown, 10)
+        self.assertEqual(grouped[0].bytes_released, 20)
         self.assertEqual(grouped[0].size_delta_bytes, -10)
         self.assertEqual(grouped[0].count_delta, -1)
+
+    def test_file_ranking_uses_gross_churn_instead_of_net_change(self) -> None:
+        deltas = compare_snapshots(
+            [
+                Allocation("churn.py", 1, 100, 1),
+                Allocation("churn.py", 2, 10, 1),
+            ],
+            [
+                Allocation("churn.py", 1, 10, 1),
+                Allocation("churn.py", 2, 100, 1),
+                Allocation("net.py", 1, 20, 1),
+            ],
+        )
+
+        churn, net = group_deltas_by_file(deltas)
+
+        self.assertEqual(churn.filename, "churn.py")
+        self.assertEqual(churn.bytes_grown, 90)
+        self.assertEqual(churn.bytes_released, 90)
+        self.assertEqual(churn.size_delta_bytes, 0)
+        self.assertEqual(net.filename, "net.py")
 
     def test_filters_small_allocation_noise(self) -> None:
         deltas = compare_snapshots(
