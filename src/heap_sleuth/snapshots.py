@@ -33,6 +33,8 @@ class FileDelta:
     bytes_grown: int
     bytes_released: int
     size_delta_bytes: int
+    allocations_grown: int
+    allocations_released: int
     count_delta: int
 
 
@@ -96,13 +98,19 @@ def group_deltas_by_file(deltas: Iterable[AllocationDelta]) -> list[FileDelta]:
             bytes_grown=sum(max(item.size_delta_bytes, 0) for item in items),
             bytes_released=sum(max(-item.size_delta_bytes, 0) for item in items),
             size_delta_bytes=sum(item.size_delta_bytes for item in items),
+            allocations_grown=sum(max(item.count_delta, 0) for item in items),
+            allocations_released=sum(max(-item.count_delta, 0) for item in items),
             count_delta=sum(item.count_delta for item in items),
         )
         for filename, items in grouped.items()
     ]
     return sorted(
         results,
-        key=lambda item: (-(item.bytes_grown + item.bytes_released), item.filename),
+        key=lambda item: (
+            -(item.bytes_grown + item.bytes_released),
+            -(item.allocations_grown + item.allocations_released),
+            item.filename,
+        ),
     )
 
 

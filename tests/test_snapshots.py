@@ -2,6 +2,7 @@ import unittest
 
 from heap_sleuth import (
     Allocation,
+    AllocationDelta,
     compare_snapshots,
     filter_deltas,
     group_deltas_by_file,
@@ -42,6 +43,8 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(grouped[0].bytes_grown, 10)
         self.assertEqual(grouped[0].bytes_released, 20)
         self.assertEqual(grouped[0].size_delta_bytes, -10)
+        self.assertEqual(grouped[0].allocations_grown, 1)
+        self.assertEqual(grouped[0].allocations_released, 2)
         self.assertEqual(grouped[0].count_delta, -1)
 
     def test_file_ranking_uses_gross_churn_instead_of_net_change(self) -> None:
@@ -64,6 +67,23 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(churn.bytes_released, 90)
         self.assertEqual(churn.size_delta_bytes, 0)
         self.assertEqual(net.filename, "net.py")
+
+    def test_file_ranking_uses_count_churn_when_byte_churn_ties(self) -> None:
+        grouped = group_deltas_by_file(
+            [
+                AllocationDelta("quiet.py", 1, 0, 1),
+                AllocationDelta("busy.py", 1, 0, 4),
+                AllocationDelta("busy.py", 2, 0, -3),
+            ]
+        )
+
+        self.assertEqual(
+            [item.filename for item in grouped],
+            ["busy.py", "quiet.py"],
+        )
+        self.assertEqual(grouped[0].allocations_grown, 4)
+        self.assertEqual(grouped[0].allocations_released, 3)
+        self.assertEqual(grouped[0].count_delta, 1)
 
     def test_filters_small_allocation_noise(self) -> None:
         deltas = compare_snapshots(

@@ -24,8 +24,10 @@ conclusion.
 
 Site-level output can be grouped by filename to reveal modules with distributed
 changes. File groups report growth and release bytes separately, along with the
-net delta and changed-site counts. They are ranked by gross byte churn, so
-opposing changes cannot disappear behind a small net value.
+net delta and changed-site counts. Allocation counts are likewise split into
+growth and release so count churn cannot disappear behind a small net value.
+Files are ranked by gross byte churn, then gross allocation-count churn when
+byte churn ties.
 
 Optional absolute byte and allocation-count thresholds suppress small deltas;
 when both are supplied, a site is retained if it meets either threshold. These
