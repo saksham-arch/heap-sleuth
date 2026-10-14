@@ -99,9 +99,41 @@ class SnapshotTests(unittest.TestCase):
         )
         self.assertEqual({item.filename for item in filtered}, {"large.py", "many.py"})
 
+    def test_can_require_all_active_noise_thresholds(self) -> None:
+        deltas = compare_snapshots(
+            [],
+            [
+                Allocation("large.py", 1, 4096, 2),
+                Allocation("many.py", 2, 128, 20),
+                Allocation("both.py", 3, 4096, 20),
+            ],
+        )
+
+        filtered = filter_deltas(
+            deltas,
+            minimum_size_bytes=1024,
+            minimum_count=10,
+            threshold_mode="all",
+        )
+
+        self.assertEqual([item.filename for item in filtered], ["both.py"])
+
+    def test_all_mode_uses_only_active_thresholds(self) -> None:
+        deltas = [AllocationDelta("large.py", 1, 4096, 1)]
+        self.assertEqual(
+            filter_deltas(
+                deltas,
+                minimum_size_bytes=1024,
+                threshold_mode="all",
+            ),
+            deltas,
+        )
+
     def test_validates_delta_thresholds(self) -> None:
         with self.assertRaises(ValueError):
             filter_deltas([], minimum_size_bytes=-1)
+        with self.assertRaises(ValueError):
+            filter_deltas([], threshold_mode="neither")
 
     def test_summarizes_growth_release_and_net_change(self) -> None:
         deltas = compare_snapshots(

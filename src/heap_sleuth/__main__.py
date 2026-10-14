@@ -35,6 +35,12 @@ def main() -> None:
     parser.add_argument("--group-by", choices=("site", "file"), default="site")
     parser.add_argument("--minimum-size-bytes", type=int, default=0)
     parser.add_argument("--minimum-count", type=int, default=0)
+    parser.add_argument(
+        "--threshold-mode",
+        choices=("any", "all"),
+        default="any",
+        help="require any or all active minimum thresholds",
+    )
     parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.top < 1:
@@ -43,6 +49,7 @@ def main() -> None:
         compare_snapshots(load_snapshot(args.before), load_snapshot(args.after)),
         minimum_size_bytes=args.minimum_size_bytes,
         minimum_count=args.minimum_count,
+        threshold_mode=args.threshold_mode,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
     visible = [asdict(item) for item in results[: args.top]]

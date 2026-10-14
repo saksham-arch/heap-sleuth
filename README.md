@@ -14,6 +14,7 @@ Snapshot format:
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --top 20
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --group-by file
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096 --minimum-count 10 --threshold-mode all
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --summary
 python3 -m unittest discover -s tests
 ```
@@ -32,6 +33,8 @@ byte churn ties.
 Optional absolute byte and allocation-count thresholds suppress small deltas;
 when both are supplied, a site is retained if it meets either threshold. These
 are practical noise filters, not statistical tests or leak classifications.
+Use `--threshold-mode all` to require every active threshold; thresholds left
+at zero remain disabled rather than rejecting every site.
 
 Summary mode separates bytes and allocation counts that grew from those that
 were released, then reports their net changes. The summary is computed after

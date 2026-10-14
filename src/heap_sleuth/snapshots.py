@@ -119,22 +119,26 @@ def filter_deltas(
     *,
     minimum_size_bytes: int = 0,
     minimum_count: int = 0,
+    threshold_mode: str = "any",
 ) -> list[AllocationDelta]:
-    """Keep changes meeting either caller-selected absolute threshold."""
+    """Keep changes meeting caller-selected absolute thresholds."""
     if minimum_size_bytes < 0 or minimum_count < 0:
         raise ValueError("delta thresholds must be non-negative")
+    if threshold_mode not in {"any", "all"}:
+        raise ValueError("threshold_mode must be 'any' or 'all'")
     items = list(deltas)
     if minimum_size_bytes == 0 and minimum_count == 0:
         return items
-    return [
-        item
-        for item in items
-        if (
-            minimum_size_bytes > 0
-            and abs(item.size_delta_bytes) >= minimum_size_bytes
-        )
-        or (minimum_count > 0 and abs(item.count_delta) >= minimum_count)
-    ]
+
+    def matches(item: AllocationDelta) -> bool:
+        checks = []
+        if minimum_size_bytes > 0:
+            checks.append(abs(item.size_delta_bytes) >= minimum_size_bytes)
+        if minimum_count > 0:
+            checks.append(abs(item.count_delta) >= minimum_count)
+        return all(checks) if threshold_mode == "all" else any(checks)
+
+    return [item for item in items if matches(item)]
 
 
 def summarize_deltas(deltas: Iterable[AllocationDelta]) -> DeltaSummary:
