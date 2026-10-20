@@ -41,6 +41,12 @@ def main() -> None:
         default="any",
         help="require any or all active minimum thresholds",
     )
+    parser.add_argument(
+        "--size-direction",
+        choices=("any", "growth", "release"),
+        default="any",
+        help="include all byte deltas, retained growth, or released bytes",
+    )
     parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.top < 1:
@@ -50,6 +56,7 @@ def main() -> None:
         minimum_size_bytes=args.minimum_size_bytes,
         minimum_count=args.minimum_count,
         threshold_mode=args.threshold_mode,
+        size_direction=args.size_direction,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
     visible = [asdict(item) for item in results[: args.top]]

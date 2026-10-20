@@ -129,11 +129,41 @@ class SnapshotTests(unittest.TestCase):
             deltas,
         )
 
+    def test_filters_by_byte_delta_direction(self) -> None:
+        deltas = [
+            AllocationDelta("grow.py", 1, 2048, 2),
+            AllocationDelta("release.py", 2, -1024, -1),
+            AllocationDelta("count-only.py", 3, 0, 4),
+        ]
+
+        growth = filter_deltas(deltas, size_direction="growth")
+        release = filter_deltas(deltas, size_direction="release")
+
+        self.assertEqual([item.filename for item in growth], ["grow.py"])
+        self.assertEqual([item.filename for item in release], ["release.py"])
+
+    def test_applies_direction_before_noise_thresholds(self) -> None:
+        deltas = [
+            AllocationDelta("small-growth.py", 1, 100, 20),
+            AllocationDelta("large-release.py", 2, -4096, -2),
+        ]
+
+        filtered = filter_deltas(
+            deltas,
+            minimum_size_bytes=1024,
+            minimum_count=10,
+            size_direction="growth",
+        )
+
+        self.assertEqual([item.filename for item in filtered], ["small-growth.py"])
+
     def test_validates_delta_thresholds(self) -> None:
         with self.assertRaises(ValueError):
             filter_deltas([], minimum_size_bytes=-1)
         with self.assertRaises(ValueError):
             filter_deltas([], threshold_mode="neither")
+        with self.assertRaises(ValueError):
+            filter_deltas([], size_direction="flat")
 
     def test_summarizes_growth_release_and_net_change(self) -> None:
         deltas = compare_snapshots(
