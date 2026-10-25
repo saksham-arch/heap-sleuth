@@ -16,6 +16,7 @@ PYTHONPATH=src python3 -m heap_sleuth before.json after.json --group-by file
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096 --minimum-count 10 --threshold-mode all
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --size-direction growth --summary
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --count-direction growth --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --summary
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
@@ -42,6 +43,12 @@ Use `--size-direction growth` to inspect only sites retaining more bytes, or
 applied before thresholds and summaries. Count-only changes have a zero byte
 delta, so they remain visible with the default `any` direction but are excluded
 from both byte-direction views.
+
+`--count-direction growth` and `--count-direction release` provide the same
+separation for allocation counts, including count-only changes. When byte and
+count directions are both selected, a site must match both filters. Opposing
+byte and count movement can reflect changing average allocation size; it is a
+lead for investigation rather than evidence of a leak or improvement.
 
 Summary mode separates bytes and allocation counts that grew from those that
 were released, then reports their net changes. The summary is computed after

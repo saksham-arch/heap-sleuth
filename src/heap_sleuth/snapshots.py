@@ -121,6 +121,7 @@ def filter_deltas(
     minimum_count: int = 0,
     threshold_mode: str = "any",
     size_direction: str = "any",
+    count_direction: str = "any",
 ) -> list[AllocationDelta]:
     """Keep changes matching caller-selected direction and thresholds."""
     if minimum_size_bytes < 0 or minimum_count < 0:
@@ -129,11 +130,17 @@ def filter_deltas(
         raise ValueError("threshold_mode must be 'any' or 'all'")
     if size_direction not in {"any", "growth", "release"}:
         raise ValueError("size_direction must be 'any', 'growth', or 'release'")
+    if count_direction not in {"any", "growth", "release"}:
+        raise ValueError("count_direction must be 'any', 'growth', or 'release'")
     items = list(deltas)
     if size_direction == "growth":
         items = [item for item in items if item.size_delta_bytes > 0]
     elif size_direction == "release":
         items = [item for item in items if item.size_delta_bytes < 0]
+    if count_direction == "growth":
+        items = [item for item in items if item.count_delta > 0]
+    elif count_direction == "release":
+        items = [item for item in items if item.count_delta < 0]
     if minimum_size_bytes == 0 and minimum_count == 0:
         return items
 

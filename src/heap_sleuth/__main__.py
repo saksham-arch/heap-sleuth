@@ -47,6 +47,12 @@ def main() -> None:
         default="any",
         help="include all byte deltas, retained growth, or released bytes",
     )
+    parser.add_argument(
+        "--count-direction",
+        choices=("any", "growth", "release"),
+        default="any",
+        help="include all count deltas, allocation growth, or release",
+    )
     parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.top < 1:
@@ -57,6 +63,7 @@ def main() -> None:
         minimum_count=args.minimum_count,
         threshold_mode=args.threshold_mode,
         size_direction=args.size_direction,
+        count_direction=args.count_direction,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
     visible = [asdict(item) for item in results[: args.top]]
