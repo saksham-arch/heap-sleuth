@@ -51,6 +51,8 @@ byte and count movement can reflect changing average allocation size; it is a
 lead for investigation rather than evidence of a leak or improvement.
 
 Summary mode separates bytes and allocation counts that grew from those that
-were released, then reports their net changes. The summary is computed after
-optional thresholds are applied, while `--top` limits only the displayed delta
-rows. Growth remains an observation between snapshots, not proof of a leak.
+were released, then reports their net changes. It also counts sites where the
+allocation count grew or fell. These site counts can diverge from byte-direction
+counts when average allocation size changes. The summary is computed after
+optional filters, while `--top` limits only the displayed delta rows. Growth
+remains an observation between snapshots, not proof of a leak.

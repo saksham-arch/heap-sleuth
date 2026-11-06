@@ -203,6 +203,8 @@ class SnapshotTests(unittest.TestCase):
         self.assertEqual(summary.changed_sites, 3)
         self.assertEqual(summary.size_growth_sites, 2)
         self.assertEqual(summary.size_release_sites, 1)
+        self.assertEqual(summary.count_growth_sites, 1)
+        self.assertEqual(summary.count_release_sites, 2)
         self.assertEqual(summary.bytes_grown, 210)
         self.assertEqual(summary.bytes_released, 100)
         self.assertEqual(summary.net_size_delta_bytes, 110)
@@ -214,6 +216,8 @@ class SnapshotTests(unittest.TestCase):
         summary = summarize_deltas([])
         self.assertEqual(summary.changed_sites, 0)
         self.assertEqual(summary.net_size_delta_bytes, 0)
+        self.assertEqual(summary.count_growth_sites, 0)
+        self.assertEqual(summary.count_release_sites, 0)
 
 
 if __name__ == "__main__":

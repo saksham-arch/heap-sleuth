@@ -43,6 +43,8 @@ class DeltaSummary:
     changed_sites: int
     size_growth_sites: int
     size_release_sites: int
+    count_growth_sites: int
+    count_release_sites: int
     bytes_grown: int
     bytes_released: int
     net_size_delta_bytes: int
@@ -161,6 +163,8 @@ def summarize_deltas(deltas: Iterable[AllocationDelta]) -> DeltaSummary:
         changed_sites=len(items),
         size_growth_sites=sum(item.size_delta_bytes > 0 for item in items),
         size_release_sites=sum(item.size_delta_bytes < 0 for item in items),
+        count_growth_sites=sum(item.count_delta > 0 for item in items),
+        count_release_sites=sum(item.count_delta < 0 for item in items),
         bytes_grown=sum(max(item.size_delta_bytes, 0) for item in items),
         bytes_released=sum(max(-item.size_delta_bytes, 0) for item in items),
         net_size_delta_bytes=sum(item.size_delta_bytes for item in items),
