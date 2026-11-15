@@ -1,4 +1,8 @@
 import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from heap_sleuth.__main__ import load_snapshot
 
 from heap_sleuth import (
     Allocation,
@@ -11,6 +15,22 @@ from heap_sleuth import (
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_loader_rejects_coerced_allocation_fields(self) -> None:
+        invalid = [
+            '[{"filename":7,"lineno":1,"size_bytes":10,"count":1}]',
+            '[{"filename":"a.py","lineno":1.5,"size_bytes":10,"count":1}]',
+            '[{"filename":"a.py","lineno":1,"size_bytes":"10","count":1}]',
+            '[{"filename":"a.py","lineno":1,"size_bytes":10,"count":true}]',
+            '[null]',
+        ]
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "snapshot.json"
+            for payload in invalid:
+                with self.subTest(payload=payload):
+                    path.write_text(payload, encoding="utf-8")
+                    with self.assertRaisesRegex(ValueError, "allocation 0"):
+                        load_snapshot(path)
+
     def test_reports_growth_release_and_new_sites(self) -> None:
         before = [Allocation("a.py", 10, 100, 2), Allocation("b.py", 5, 50, 1)]
         after = [Allocation("a.py", 10, 140, 3), Allocation("c.py", 7, 200, 4)]

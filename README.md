@@ -6,6 +6,10 @@ deltas, making growth and release visible without labeling either as a leak.
 
 Snapshot format:
 
+The loader requires a string filename and integer line, byte, and count
+fields. It rejects numeric strings, fractional values, and booleans rather
+than silently converting them.
+
 ```json
 [{"filename":"worker.py","lineno":42,"size_bytes":4096,"count":8}]
 ```

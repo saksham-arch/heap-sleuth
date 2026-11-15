@@ -16,15 +16,19 @@ def load_snapshot(path: Path) -> list[Allocation]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(payload, list):
         raise ValueError("snapshot root must be a list")
-    return [
-        Allocation(
-            filename=str(item["filename"]),
-            lineno=int(item["lineno"]),
-            size_bytes=int(item["size_bytes"]),
-            count=int(item["count"]),
+    allocations: list[Allocation] = []
+    for index, item in enumerate(payload):
+        if not isinstance(item, dict):
+            raise ValueError(f"allocation {index} must be an object")
+        if not isinstance(item.get("filename"), str) or any(
+            type(item.get(field)) is not int
+            for field in ("lineno", "size_bytes", "count")
+        ):
+            raise ValueError(f"allocation {index} has invalid field types")
+        allocations.append(
+            Allocation(item["filename"], item["lineno"], item["size_bytes"], item["count"])
         )
-        for item in payload
-    ]
+    return allocations
 
 
 def main() -> None:
