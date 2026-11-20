@@ -40,6 +40,10 @@ def main() -> None:
     parser.add_argument("--minimum-size-bytes", type=int, default=0)
     parser.add_argument("--minimum-count", type=int, default=0)
     parser.add_argument(
+        "--filename-contains",
+        help="include only allocation sites whose filename contains this literal text",
+    )
+    parser.add_argument(
         "--threshold-mode",
         choices=("any", "all"),
         default="any",
@@ -68,6 +72,7 @@ def main() -> None:
         threshold_mode=args.threshold_mode,
         size_direction=args.size_direction,
         count_direction=args.count_direction,
+        filename_contains=args.filename_contains,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
     visible = [asdict(item) for item in results[: args.top]]

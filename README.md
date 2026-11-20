@@ -21,6 +21,7 @@ PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-byte
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-bytes 4096 --minimum-count 10 --threshold-mode all
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --size-direction growth --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --count-direction growth --summary
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --filename-contains 'src/cache/' --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --summary
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
@@ -35,6 +36,11 @@ net delta and changed-site counts. Allocation counts are likewise split into
 growth and release so count churn cannot disappear behind a small net value.
 Files are ranked by gross byte churn, then gross allocation-count churn when
 byte churn ties.
+
+`--filename-contains` selects sites by a case-sensitive literal substring of
+their filename. It runs before grouping, thresholds, and the optional summary,
+so the summary describes only matching sites. It is useful for focusing on a
+module; a missing match produces an empty result rather than an error.
 
 Optional absolute byte and allocation-count thresholds suppress small deltas;
 when both are supplied, a site is retained if it meets either threshold. These

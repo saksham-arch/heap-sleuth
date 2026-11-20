@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, Optional
 
 
 @dataclass(frozen=True)
@@ -124,6 +124,7 @@ def filter_deltas(
     threshold_mode: str = "any",
     size_direction: str = "any",
     count_direction: str = "any",
+    filename_contains: Optional[str] = None,
 ) -> list[AllocationDelta]:
     """Keep changes matching caller-selected direction and thresholds."""
     if minimum_size_bytes < 0 or minimum_count < 0:
@@ -134,7 +135,11 @@ def filter_deltas(
         raise ValueError("size_direction must be 'any', 'growth', or 'release'")
     if count_direction not in {"any", "growth", "release"}:
         raise ValueError("count_direction must be 'any', 'growth', or 'release'")
+    if filename_contains is not None and not filename_contains:
+        raise ValueError("filename_contains must not be empty")
     items = list(deltas)
+    if filename_contains is not None:
+        items = [item for item in items if filename_contains in item.filename]
     if size_direction == "growth":
         items = [item for item in items if item.size_delta_bytes > 0]
     elif size_direction == "release":
