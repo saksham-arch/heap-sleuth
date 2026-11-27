@@ -44,6 +44,10 @@ def main() -> None:
         help="include only allocation sites whose filename contains this literal text",
     )
     parser.add_argument(
+        "--exclude-filename-contains",
+        help="exclude allocation sites whose filename contains this literal text",
+    )
+    parser.add_argument(
         "--threshold-mode",
         choices=("any", "all"),
         default="any",
@@ -73,6 +77,7 @@ def main() -> None:
         size_direction=args.size_direction,
         count_direction=args.count_direction,
         filename_contains=args.filename_contains,
+        exclude_filename_contains=args.exclude_filename_contains,
     )
     results = group_deltas_by_file(deltas) if args.group_by == "file" else deltas
     visible = [asdict(item) for item in results[: args.top]]

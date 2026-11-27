@@ -136,6 +136,26 @@ class SnapshotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             filter_deltas([], filename_contains="")
 
+    def test_excludes_noisy_filenames_before_grouping_and_summary(self) -> None:
+        deltas = [
+            AllocationDelta("src/cache/store.py", 1, 100, 2),
+            AllocationDelta("src/cache/generated.py", 2, 900, 3),
+            AllocationDelta("tests/cache_test.py", 3, 20, 1),
+        ]
+        selected = filter_deltas(
+            deltas,
+            filename_contains="src/cache/",
+            exclude_filename_contains="generated",
+        )
+
+        self.assertEqual([item.filename for item in selected], ["src/cache/store.py"])
+        self.assertEqual(summarize_deltas(selected).net_size_delta_bytes, 100)
+        self.assertEqual(group_deltas_by_file(selected)[0].filename, "src/cache/store.py")
+
+    def test_rejects_empty_exclusion_filter(self) -> None:
+        with self.assertRaises(ValueError):
+            filter_deltas([], exclude_filename_contains="")
+
     def test_can_require_all_active_noise_thresholds(self) -> None:
         deltas = compare_snapshots(
             [],

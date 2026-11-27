@@ -22,6 +22,7 @@ PYTHONPATH=src python3 -m heap_sleuth before.json after.json --minimum-size-byte
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --size-direction growth --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --count-direction growth --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --filename-contains 'src/cache/' --summary
+PYTHONPATH=src python3 -m heap_sleuth before.json after.json --exclude-filename-contains 'generated/' --summary
 PYTHONPATH=src python3 -m heap_sleuth before.json after.json --summary
 PYTHONPATH=src python3 -m unittest discover -s tests
 ```
@@ -41,6 +42,12 @@ byte churn ties.
 their filename. It runs before grouping, thresholds, and the optional summary,
 so the summary describes only matching sites. It is useful for focusing on a
 module; a missing match produces an empty result rather than an error.
+
+`--exclude-filename-contains` removes sites with a case-sensitive literal
+substring before grouping and summary. It can suppress known noisy sources;
+use it with care because excluded growth will not appear in the results.
+When both filename filters are supplied, exclusion is applied to the included
+sites.
 
 Optional absolute byte and allocation-count thresholds suppress small deltas;
 when both are supplied, a site is retained if it meets either threshold. These
